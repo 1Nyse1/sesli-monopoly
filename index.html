@@ -116,14 +116,34 @@ window.onload = function() {
 function speak(text, callback) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'tr-TR'; 
-    utterance.rate = 0.9; // Şiirler için hızı hafif düşürdük
+    utterance.rate = 0.95; // Doğal bir konuşma hızı
+    utterance.pitch = 1.0; // Ses tonu kalınlığı (1 tam standarttır)
+
+    // Cihazdaki tüm sesleri listele ve en iyi Türkçe sesi bul
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Google veya Apple'ın daha gelişmiş (premium/natural) seslerini önceliklendir
+    const enIyiTurkceSes = voices.find(voice => voice.lang.includes('tr-TR') && voice.name.includes('Google')) || 
+                          voices.find(voice => voice.lang.includes('tr-TR') && voice.name.includes('Premium')) ||
+                          voices.find(voice => voice.lang.includes('tr-TR'));
+
+    if (enIyiTurkceSes) {
+        utterance.voice = enIyiTurkceSes;
+    }
+    
     utterance.onend = function() {
         if (callback) callback();
     };
+    
     window.speechSynthesis.cancel(); 
     window.speechSynthesis.speak(utterance);
 }
 
+// Bazı tarayıcılarda seslerin yüklenmesi zaman alır, bu yüzden bu tetikleyiciyi ekliyoruz
+window.speechSynthesis.onvoiceschanged = function() {
+    // Sesler arka planda güncellendiğinde hazır duruma gelir
+};
+    
 function geriSayimiBaslat() {
     document.getElementById('durum').innerText = "Cevap için süreniz başladı!";
     let kalanSure = 15;
